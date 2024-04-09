@@ -1,0 +1,78 @@
+{% extends 'quotes/base.html' %}
+{% load extract %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-8">
+            {% for quote in quotes %}
+                <div class="quote" itemscope="" itemtype="http://schema.org/CreativeWork">
+                    <span class="text" itemprop="text">
+                        {{ quote.quote }}
+                    </span>
+                    <span>by <small class="author" itemprop="author">{{ quote.author|author }}</small>
+                        <a href="/author/{{ quote.author }}">(about)</a>
+                    </span>
+                    <div class="tags">
+                        Tags:
+                        {% for tag in quote.tags %}
+                            <a class="tag" href="/tag/{{ tag }}">{{ tag }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+
+            <nav>
+                <ul class="pager">
+                    <li class="previous">
+                        <a class="{% if not quotes.has_previous %} disabled {% endif %}"
+                           href="{% if quotes.has_previous %} {% url 'quotes:root-paginate' quotes.previous_page_number %} {% else %} # {% endif %}">
+                            <span aria-hidden="true">←</span> Previous
+                        </a>
+                    </li>
+                    <li class="next">
+                        <a class="{% if not quotes.has_previous %} disabled {% endif %}"
+                           href="{% if quotes.has_next %} {% url 'quotes:root-paginate' quotes.next_page_number %} {% else %} # {% endif %}">
+                            Next <span aria-hidden="true">→</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        <div class="col-md-4">
+            <!-- Відображення списку авторів -->
+            <div class="authors-list">
+                <h2>Authors</h2>
+                <ul>
+                    {% for author in authors %}
+                        <li>{{ author.fullname }}</li>
+                    {% empty %}
+                        <li>No authors yet.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Форма для додавання нової цитати -->
+            {% if user.is_authenticated %}
+                <div class="add-quote-form">
+                    <h2>Add a New Quote</h2>
+                    <form method="post" action="{% url 'quotes:add-quote' %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="quote">Quote:</label>
+                            <textarea class="form-control" id="quote" name="quote" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="author">Author:</label>
+                            <select class="form-control" id="author" name="author">
+                                {% for author in authors %}
+                                    <option value="{{ author.id }}">{{ author.fullname }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Quote</button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
